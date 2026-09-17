@@ -1,0 +1,45 @@
+name: Autonomous Shadow Forward Engine (24/7)
+
+on:
+  schedule:
+    # Runs every 15 minutes 24/7 (Free GitHub Actions Cron)
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+permissions:
+  contents: write # Allows committing updated shadow_ledger.db to repo
+
+jobs:
+  run-shadow-forward:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Shadow Forward Market Ingestion
+        run: |
+          python backend/scripts/run_shadow_forward.py
+
+      - name: Commit & Push Updated Shadow Ledger (Immutable)
+        run: |
+          git config --global user.name "GitHub Action [Shadow Engine]"
+          git config --global user.email "action@github.com"
+          git add backend/data/shadow_ledger.db
+          if git diff --staged --quiet; then
+            echo "No new changes to commit."
+          else
+            git commit -m "Auto: Update Shadow Forward Ledger [SHA-256 Verified]"
+            git push
+          fi
