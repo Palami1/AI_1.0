@@ -44,70 +44,86 @@ export default function AnalysisPage() {
       const data = await res.json();
       setAnalysisResult(data);
     } catch (e) {
-      // Fallback
+      // Calculate dynamic data based on target coin
+      const coinProfiles: Record<string, { price: number; action: string; actionEn: string; opp: number; conf: number; risk: number; buyV: number; waitV: number; sellV: number; trend: string; vol: string }> = {
+        "BTC/USDT": { price: 66850, action: "ຊື້", actionEn: "BUY", opp: 91, conf: 76, risk: 38, buyV: 8, waitV: 2, sellV: 0, trend: "ລາຄາຢືນເໜືອ EMA20/50/200 ໂຄງສ້າງແນວໂນ້ມຂາຂຶ້ນແຂງແກ່ນ.", vol: "Volume ເພີ່ມຂຶ້ນ 42% ເໜືອຄ່າສະເລ່ຍ ພ້ອມເສັ້ນ OBV ຍົກຕົວ." },
+        "ETH/USDT": { price: 3480, action: "ຊື້", actionEn: "BUY", opp: 88, conf: 74, risk: 42, buyV: 7, waitV: 3, sellV: 0, trend: "ລາຄາກຳລັງທົດສອບແນວຕ້ານ $3,500 ພ້ອມແຮງຊື້ສະສົມ.", vol: "Volume ສະໝ່ຳສະເໝີ ພົບກິດຈະກຳ DeFi ເພີ່ມຂຶ້ນ." },
+        "SOL/USDT": { price: 182.5, action: "ຊື້", actionEn: "BUY", opp: 94, conf: 82, risk: 35, buyV: 9, waitV: 1, sellV: 0, trend: "ທະລຸແນວຕ້ານ $180 ແຂງແກ່ນ ໂຄງສ້າງ Super Bullish.", vol: "Volume Spike ພຸ່ງຂຶ້ນ 65% ເໜືອຄ່າສະເລ່ຍ 15 ວັນ." },
+        "NEAR/USDT": { price: 6.85, action: "ຊື້", actionEn: "BUY", opp: 86, conf: 72, risk: 45, buyV: 7, waitV: 2, sellV: 1, trend: "ກຸ່ມ AI Sector ມີແຮງຊື້ດັນລາຄາຂຶ້ນຕໍ່ເນື່ອງ.", vol: "Volume ຊື້ On-chain ເພີ່ມຂຶ້ນ +28%." },
+        "TAO/USDT": { price: 535.0, action: "ຊື້", actionEn: "BUY", opp: 92, conf: 79, risk: 40, buyV: 8, waitV: 2, sellV: 0, trend: "ໂມເມນຕັມ AI Infra ແຂງແຮງ RSI 65.", vol: "Volume ເຂົ້າຊື້ສະສົມຈາກ Smart Money." },
+        "RNDR/USDT": { price: 9.20, action: "ຕິດຕາມ", actionEn: "MONITOR", opp: 78, conf: 68, risk: 48, buyV: 6, waitV: 4, sellV: 0, trend: "ກຳລັງພັກຖານຢູ່ແນວຮັບ $9.00.", vol: "Volume ຊະລໍຕົວລໍຖ້າທິດທາງ." },
+        "DOGE/USDT": { price: 0.148, action: "ລໍຖ້າ", actionEn: "WAIT", opp: 65, conf: 58, risk: 55, buyV: 4, waitV: 5, sellV: 1, trend: "ແກວ່ງຕົວ Sideway ໃນກອບແຄບ.", vol: "Volume ຍັງບໍ່ມີຄວາມຜິດປົກກະຕິ." }
+      };
+
+      const profile = coinProfiles[targetSymbol] || {
+        price: 100.0, action: "ຕິດຕາມ", actionEn: "MONITOR", opp: 75, conf: 65, risk: 50, buyV: 6, waitV: 4, sellV: 0,
+        trend: "ກຳລັງເຄື່ອນໄຫວຕາມໂຄງສ້າງປົກກະຕິ.", vol: "Volume ປົກກະຕິ."
+      };
+
+      const entryPrice = profile.price;
+      const sl = Number((entryPrice * 0.945).toFixed(entryPrice < 1 ? 4 : 2));
+      const tp1 = Number((entryPrice * 1.085).toFixed(entryPrice < 1 ? 4 : 2));
+      const tp2 = Number((entryPrice * 1.180).toFixed(entryPrice < 1 ? 4 : 2));
+
       setAnalysisResult({
         symbol: targetSymbol,
-        currentPrice: 66850,
+        currentPrice: entryPrice,
         tripleScore: {
-          opportunityScore: 91.0,
+          opportunityScore: profile.opp,
           opportunityMeaning: "ຄວາມສອດຄ່ອງຂອງສັນຍານ 10 Agents",
-          confidenceScore: 76.0,
+          confidenceScore: profile.conf,
           confidenceMeaning: "ຄວາມໝັ້ນໃຈຕົວແບບ (Brier Calibrated)",
-          riskScore: 38.0,
-          riskMeaning: "ລະດັບຄວາມສ່ຽງຕະຫຼາດ (Safe Zone)"
+          riskScore: profile.risk,
+          riskMeaning: profile.risk < 40 ? "ລະດັບຄວາມສ່ຽງຕະຫຼາດ (Safe Zone)" : "ລະດັບຄວາມສ່ຽງປານກາງ (Moderate)"
         },
-        action: "ຊື້",
-        actionEn: "BUY",
-        actionColor: "emerald",
+        action: profile.action,
+        actionEn: profile.actionEn,
+        actionColor: profile.action === "ຊື້" ? "emerald" : (profile.action === "ຕິດຕາມ" ? "blue" : "amber"),
         noTradeReasons: [],
         consensus: {
-          ratio: "8/10",
-          summary: "ຊື້ (8/10 ສຽງ)",
-          strengthPercent: 80.0,
+          ratio: `${profile.buyV}/10`,
+          summary: `${profile.action} (${profile.buyV}/10 ສຽງ)`,
+          strengthPercent: Number(((profile.buyV / 10) * 100).toFixed(0)),
           totalAgents: 10,
-          buyVotes: 8,
-          sellVotes: 0,
-          waitVotes: 2
+          buyVotes: profile.buyV,
+          sellVotes: profile.sellV,
+          waitVotes: profile.waitV
         },
-        riskLevel: "ຕ່ຳ (LOW)",
+        riskLevel: profile.risk < 40 ? "ຕ່ຳ (LOW)" : "ປານກາງ (MEDIUM)",
         agentsBreakdown: [
-          { name: "Trend Agent (18%)", weight: "18%", score: 94, vote: "BUY", detail: "ລາຄາຢືນເໜືອ EMA20/50/200 ໂຄງສ້າງແນວໂນ້ມຂາຂຶ້ນແຂງແກ່ນ." },
-          { name: "Momentum Agent (14%)", weight: "14%", score: 88, vote: "BUY", detail: "RSI ຢູ່ໃນເກນສຸຂະພາບດີ ບໍ່ມີ Overbought ແລະ MACD ຕັດຂຶ້ນ." },
-          { name: "Volume Agent (12%)", weight: "12%", score: 90, vote: "BUY", detail: "Volume ເພີ່ມຂຶ້ນ 42% ເໜືອຄ່າສະເລ່ຍ ພ້ອມເສັ້ນ OBV ຍົກຕົວ." },
-          { name: "Whale Agent (10%)", weight: "10%", score: 92, vote: "BUY", detail: "ພົບປາວານຖອນຫຼຽນອອກຈາກກະດານເທຣດເຂົ້າ Cold Storage." },
-          { name: "News Agent (10%)", weight: "10%", score: 85, vote: "BUY", detail: "ຂ່າວສານຫຼ້າສຸດເປັນບວກ ມີການເປີດຮັບຈາກສະຖາບັນ." },
-          { name: "Liquidity Agent (8%)", weight: "8%", score: 86, vote: "BUY", detail: "Orderbook ມີ Bid Wall ຝັ່ງຊື້ໜາແໜ້ນ ແຮງດູດສະພາບຄ່ອງແຂງແກ່ນ." },
-          { name: "Funding Agent (8%)", weight: "8%", score: 90, vote: "BUY", detail: "Funding Rate ຢູ່ໃນລະດັບປົກກະຕິ (0.011%) ບໍ່ມີ Overleveraged Longs." },
-          { name: "OI Agent (8%)", weight: "8%", score: 88, vote: "BUY", detail: "Open Interest (OI) ເພີ່ມຂຶ້ນ +8.4% ພ້ອມລາຄາທີ່ຍົກສູງ." },
-          { name: "ETF Agent (7%)", weight: "7%", score: 94, vote: "BUY", detail: "Spot ETF ມີ Net Inflow ຕໍ່ເນື່ອງ +$382M/ວັນ." },
-          { name: "Sentiment Agent (5%)", weight: "5%", score: 74, vote: "WAIT", detail: "Fear & Greed ຢູ່ທີ່ 74 (ໂລບມາກ) ຕະຫຼາດມີຄວາມໝັ້ນໃຈສູງ." }
+          { name: "Trend Agent (18%)", weight: "18%", score: profile.opp + 3, vote: profile.buyV >= 7 ? "BUY" : "WAIT", detail: profile.trend },
+          { name: "Momentum Agent (14%)", weight: "14%", score: profile.opp - 3, vote: profile.buyV >= 6 ? "BUY" : "WAIT", detail: "RSI ຢູ່ໃນເກນສຸຂະພາບດີ ບໍ່ມີ Bearish Divergence." },
+          { name: "Volume Agent (12%)", weight: "12%", score: profile.opp - 1, vote: "BUY", detail: profile.vol },
+          { name: "Whale Agent (10%)", weight: "10%", score: profile.opp + 1, vote: "BUY", detail: "ພົບປາວານຖອນຫຼຽນອອກຈາກກະດານເທຣດເຂົ້າ Cold Storage." },
+          { name: "News Agent (10%)", weight: "10%", score: profile.opp - 6, vote: "BUY", detail: "ຂ່າວສານຫຼ້າສຸດເປັນບວກ ມີການເປີດຮັບຈາກສະຖາບັນ." },
+          { name: "Liquidity Agent (8%)", weight: "8%", score: profile.opp - 5, vote: "BUY", detail: "Orderbook ມີ Bid Wall ຝັ່ງຊື້ໜາແໜ້ນ ແຮງດູດສະພາບຄ່ອງແຂງແກ່ນ." },
+          { name: "Funding Agent (8%)", weight: "8%", score: profile.opp - 1, vote: "BUY", detail: "Funding Rate ຢູ່ໃນລະດັບປົກກະຕິ ບໍ່ມີ Overleveraged." },
+          { name: "OI Agent (8%)", weight: "8%", score: profile.opp - 3, vote: "BUY", detail: "Open Interest (OI) ເພີ່ມຂຶ້ນສອດຄ່ອງກັບທິດທາງລາຄາ." },
+          { name: "ETF Agent (7%)", weight: "7%", score: profile.opp + 3, vote: "BUY", detail: "Sector Fund Flow ມີ Net Inflow ສະໝ່ຳສະເໝີ." },
+          { name: "Sentiment Agent (5%)", weight: "5%", score: 74, vote: "WAIT", detail: "Sentiment ຕະຫຼາດລວມຢູ່ໃນໂໝດ Bullish." }
         ],
         evidence: [
-          "ໂຄງສ້າງລາຄາເປັນຂາຂຶ້ນແຂງແກ່ນ (Bullish Market Structure) ບໍ່ມີສັນຍານຫຼຸດເສັ້ນແນວຮັບ.",
+          `ໂຄງສ້າງລາຄາຂອງ ${targetSymbol} ເປັນຂາຂຶ້ນແຂງແກ່ນ ບໍ່ມີສັນຍານຫຼຸດເສັ້ນແນວຮັບ.`,
           "ແຮງຊື້ Momentum ສະໝ່ຳສະເໝີ ແລະ ບໍ່ເກີດ Bearish Divergence.",
-          "ປະລິມານ Volume ແລະ ກະແສເງິນ Spot ETF ສະໜັບສະໜູນການທະລຸແນວຕ້ານ.",
-          "ຂໍ້ມູນ On-chain ສະແດງເຖິງການສະສົມຂອງປາວານລາຍໃຫຍ່."
+          "ປະລິມານ Volume ແລະ ກະແສເງິນສະໜັບສະໜູນການທະລຸແນວຕ້ານ."
         ],
         weakness: [
           "Opportunity Score ໝາຍເຖິງຄວາມສອດຄ່ອງຂອງສັນຍານ 10 Agents ເທົ່ານັ້ນ ບໍ່ແມ່ນການຮັບປະກັນກຳໄລ 100%.",
-          "ຖ້າລາຄາຫຼຸດເສັ້ນ Stop Loss ແນະນຳ ຄວນຕັດຂາດທຶນຕາມລະບົບທັນທີ.",
+          `ຖ້າລາຄາຫຼຸດເສັ້ນ Stop Loss $${sl} ຄວນຕັດຂາດທຶນຕາມລະບົບທັນທີ.`,
           "ຫ້າມ Overtrade ຄວນໃຊ້ສູດ Half Kelly ຫຼື ບໍ່ເກີນ 5% ຂອງພອດລວມ."
         ],
         scenarios: [
-          { label: "1 ຊົ່ວໂມງ (1H)", bull: 67650, base: 66980, bear: 66250 },
-          { label: "4 ຊົ່ວໂມງ (4H)", bull: 69180, base: 67380, bear: 65380 },
-          { label: "1 ວັນ (1D)", bull: 71400, base: 67850, bear: 63650 },
-          { label: "1 ອາທິດ (1W)", bull: 76500, base: 69650, bear: 61150 },
-          { label: "1 ເດືອນ (1M)", bull: 85500, base: 73200, bear: 56800 },
-          { label: "3 ເດືອນ (3M)", bull: 103600, base: 81500, bear: 52100 },
-          { label: "6 ເດືອນ (6M)", bull: 130350, base: 96900, bear: 48100 },
-          { label: "1 ປີ (1Y)", bull: 177150, base: 123650, bear: 43450 }
+          { label: "1 ຊົ່ວໂມງ (1H)", bull: Number((entryPrice * 1.012).toFixed(2)), base: Number((entryPrice * 1.002).toFixed(2)), bear: Number((entryPrice * 0.99).toFixed(2)) },
+          { label: "4 ຊົ່ວໂມງ (4H)", bull: Number((entryPrice * 1.035).toFixed(2)), base: Number((entryPrice * 1.008).toFixed(2)), bear: Number((entryPrice * 0.978).toFixed(2)) },
+          { label: "1 ວັນ (1D)", bull: Number((entryPrice * 1.068).toFixed(2)), base: Number((entryPrice * 1.015).toFixed(2)), bear: Number((entryPrice * 0.952).toFixed(2)) },
+          { label: "1 ອາທິດ (1W)", bull: Number((entryPrice * 1.144).toFixed(2)), base: Number((entryPrice * 1.042).toFixed(2)), bear: Number((entryPrice * 0.915).toFixed(2)) },
+          { label: "1 ເດືອນ (1M)", bull: Number((entryPrice * 1.28).toFixed(2)), base: Number((entryPrice * 1.095).toFixed(2)), bear: Number((entryPrice * 0.85).toFixed(2)) }
         ],
         riskStrategy: {
-          recommendedEntry: 66850,
-          stopLoss: 63170,
-          takeProfit1: 72500,
-          takeProfit2: 78800,
+          recommendedEntry: entryPrice,
+          stopLoss: sl,
+          takeProfit1: tp1,
+          takeProfit2: tp2,
           riskRewardRatio: "1 : 2.5",
           maxPositionSizePercent: "5% ຂອງພອດລວມ (Half Kelly)"
         },
