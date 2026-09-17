@@ -142,13 +142,13 @@ export default function OpportunityRadarPage() {
               <tr>
                 <th className="py-3.5 px-4 text-center">ອັນດັບ</th>
                 <th className="py-3.5 px-4">ຫຼຽນ</th>
-                <th className="py-3.5 px-3 text-center">Opportunity</th>
-                <th className="py-3.5 px-3 text-center">Confidence</th>
-                <th className="py-3.5 px-3 text-center">Risk</th>
+                <th className="py-3.5 px-3 text-center">ໂອກາດ (Opportunity)</th>
+                <th className="py-3.5 px-3 text-center">ຄວາມໝັ້ນໃຈ (Confidence)</th>
+                <th className="py-3.5 px-3 text-center">ຄວາມສ່ຽງ (Risk)</th>
                 <th className="py-3.5 px-4">ສັນຍານຫຼັກ (Trigger)</th>
                 <th className="py-3.5 px-4 text-right">ລາຄາ ($)</th>
                 <th className="py-3.5 px-4 text-right">24H ປ່ຽນແປງ</th>
-                <th className="py-3.5 px-4 text-center">AI Consensus</th>
+                <th className="py-3.5 px-4 text-center">ສຽງໂຫວດ (Consensus)</th>
                 <th className="py-3.5 px-4 text-center">ວິເຄາະ AI</th>
               </tr>
             </thead>
